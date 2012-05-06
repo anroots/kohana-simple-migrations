@@ -178,25 +178,42 @@ class Simple_Migration
 	 * The current revision is stored in the self::TABLE_NAME table
 	 *
 	 * @since 1.0
-	 * @return Simple_Migration_Revision|bool False on failure or when there are no rows in revision table
+	 * @return Simple_Migration_Revision
 	 */
 	public function current()
 	{
 		// Return cached copy
 		if (Simple_Migration::$_current === NULL) {
-			try {
-				Simple_Migration::$_current = DB::select()
-					->from($this->get_table_name())
-					->order_by('version', 'DESC')
-					->limit(1)
-					->as_object('simple_migration_revision')
-					->execute()
-					->current();
-			} catch (Database_Exception $e) {
-				return FALSE;
-			}
+			Simple_Migration::$_current = $this->_current();
 		}
+
+		// This is the first revision?
+		if (Simple_Migration::$_current === FALSE) {
+			return new Simple_Migration_Revision(0);
+		}
+
 		return Simple_Migration::$_current;
+	}
+
+	/**
+	 * Get current revision from the database
+	 *
+	 * @since 1.0
+	 * @return Simple_Migration_Revision
+	 */
+	private function _current()
+	{
+		try {
+			return DB::select()
+				->from($this->get_table_name())
+				->order_by('version', 'DESC')
+				->limit(1)
+				->as_object('simple_migration_revision')
+				->execute()
+				->current();
+		} catch (Database_Exception $e) {
+			return new Simple_Migration_Revision(0);
+		}
 	}
 
 	/**
@@ -223,9 +240,19 @@ class Simple_Migration
 	 *
 	 * @since 1.0
 	 * @param int $revision_number
+	 * @return array An array, containing 'output' and 'status' keys
 	 */
 	public function migrate($revision_number)
 	{
+		if (empty($revision_number) || !is_numeric($revision_number)) {
+			return array('output' => 'Invalid revision number', 'status' => 1);
+		}
+
+		// Sanity check
+		if ($this->current()->version == $revision_number) {
+			return array('output' => 'Can not migrate to the current revision (you\'re already here).', 'status' => 1);
+		}
+
 		return $this->current()->version > $revision_number ? $this->_migrate_down($revision_number) : $this->_migrate_up($revision_number);
 	}
 
@@ -235,17 +262,59 @@ class Simple_Migration
 		return TRUE;
 	}
 
+	/**
+	 * Migrate the database UP
+	 *
+	 * @since 1.0
+	 * @param int $version Revision version
+	 * @return array Output from MySQL exec
+	 */
 	private function _migrate_up($version)
 	{
-		$i = $this->current()->version;
+		// Start from the next version
+		$i = $this->current()->version + 1;
 
-		while ($i < $version) {
+		$output = NULL;
+		$status = 0;
+
+		// Maybe we need to migrate several revisions at once...
+		while ($i <= $version) {
+
+			// Pseudo revision
+			if ($i == 0) {
+				$i++;
+				continue;
+			}
+
+			// Load current revision
 			$revision = new Simple_Migration_Revision($i);
-			$revision->execute(Simple_Migration::UP);
+
+			// Do migration
+			$result = $revision->execute(Simple_Migration::UP);
+
+			// Results
+			$status = $result['status'];
+			$output .= $result['output'];
+
+			// Sth went wrong...
+			if ($status !== 0) {
+				$output .= "\n---\nCommand exited with status code " . $result['status'] . ". Aborting.";
+				break;
+			}
+
+			// Record revision exec in the database
+			DB::insert(Simple_Migration::get_table_name(), array('version'))
+				->values(array($i))
+				->execute();
+
+			// Refresh current revision
+			Simple_Migration::$_current = $this->_current();
+
+			// Next revision
 			$i++;
 		}
 
-		return TRUE;
+		return array('output' => $output, 'status' => $status);
 	}
 
 	/**

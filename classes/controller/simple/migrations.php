@@ -33,7 +33,8 @@ class Controller_Simple_Migrations extends Controller_Template
 		View::set_global('current', $this->_instance->current());
 
 		// List of SQL files
-		View::set_global('migrations', Simple_Migration::get_files());
+		$files = Simple_Migration::get_files();
+		View::set_global('migrations', $files);
 	}
 
 	/**
@@ -44,6 +45,19 @@ class Controller_Simple_Migrations extends Controller_Template
 	public function action_index()
 	{
 		$this->template->content = View::factory('simple/migrations/dash');
+	}
+
+	/**
+	 * Show details about a particular revision
+	 *
+	 * @since 1.0
+	 */
+	public function action_revision()
+	{
+		$id = Request::current()->param('id');
+
+		$this->template->content = View::factory('simple/migrations/revision');
+		$this->template->content->revision = $revision = new Simple_Migration_Revision($id);
 	}
 
 	/**
@@ -65,10 +79,20 @@ class Controller_Simple_Migrations extends Controller_Template
 	 */
 	public function action_migrate()
 	{
-		$revision = $this->request->param('id');
+		// Get revision number to migrate TO
+		if ($this->request->post('revision') !== NULL) { // From navbar form
+			$revision = $this->request->post('revision');
+		} elseif ($this->request->param('id') !== NULL) { // From URL
+			$revision = $this->request->param('id');
+		} else { // Latest available revision by default
+			$revision = $this->_instance->current()->version + 1;
+		}
 
-		$this->_instance->migrate($revision);
-		$this->request->redirect('simple_migrations');
+		$output = $this->_instance->migrate($revision);
+
+		$this->template->content = View::factory('simple/migrations/migrate', array(
+			'output' => $output
+		));
 	}
 
 	/**
@@ -86,6 +110,24 @@ class Controller_Simple_Migrations extends Controller_Template
 
 			// Install and redirect
 			$installer->install();
+			$this->request->redirect('simple_migrations');
+		}
+	}
+
+	/**
+	 * Uninstall the module
+	 *
+	 * @since 1.0
+	 */
+	public function action_uninstall()
+	{
+		$this->template->content = View::factory('simple/migrations/uninstall');
+
+		if ($this->request->param('id') === 'continue') {
+			$installer = new Simple_Migration_Installer();
+
+			// Uninstall and redirect
+			$installer->uninstall();
 			$this->request->redirect('simple_migrations');
 		}
 	}

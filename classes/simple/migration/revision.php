@@ -17,13 +17,12 @@ class Simple_Migration_Revision
 	const METHOD_EXPLODE = 2; // Explode file contents by ';' character and query one-by-one
 
 	// Database
-	public $id;
 	public $version;
 	public $applied;
 
 	// SQL
-	protected $sql_up;
-	protected $sql_down;
+	public $sql_up;
+	public $sql_down;
 
 	/**
 	 * Empty constructor for mysql_fetch_object
@@ -33,8 +32,45 @@ class Simple_Migration_Revision
 	 */
 	public function __construct($version = NULL)
 	{
+		// Pseudo-version
+		if ($version === 0) {
+			$this->version = 0;
+			return;
+		}
+
 		if (is_numeric($version)) {
-			$this->_load_sql($version);
+			$this->_load($version);
+		}
+	}
+
+	/**
+	 * Try to load this model with values from the database
+	 *
+	 * @since 1.0
+	 * @param int $version
+	 */
+	private function _load($version)
+	{
+		// Not installed
+		if (!Simple_Migration::instance()->is_installed()) {
+			return;
+		}
+
+		// Load UP/DOWN SQL from files
+		$this->_load_sql($version);
+
+		// Load row from DB
+		$values = DB::select()
+			->from(Simple_Migration::get_table_name())
+			->where('version', '=', $version)
+			->as_object()
+			->execute()
+			->current();
+
+		// Load class
+		if ($values instanceof stdClass) {
+			$this->version = $values->version;
+			$this->applied = $values->applied;
 		}
 	}
 
@@ -43,10 +79,16 @@ class Simple_Migration_Revision
 	 *
 	 * @since 1.0
 	 * @param string $direction The direction of the SQL: whether to migrate UP or DOWN
+	 * @return array Output from MYSQ execute command, array with keys output and status
 	 * @throws Simple_Migration_Exception
 	 */
 	public function execute($direction = Simple_Migration::UP)
 	{
+		// Pseudo-version
+		if ($this->version == 0) {
+			return array('output' => "No SQL for initial revision 0 (this is OK).\n", 'status' => 0);
+		}
+
 		if ($this->version === NULL) {
 			throw new Simple_Migration_Exception('Simple Migration Revision is not loaded!');
 		}
@@ -64,9 +106,9 @@ class Simple_Migration_Revision
 
 		// Execute the appropriate method
 		if ($method === self::METHOD_SHELL) {
-			$this->_execute_by_shell($this->file($this->version, $direction));
+			return $this->_execute_by_shell($this->file($this->version, $direction));
 		} else {
-			$this->_execute_by_explode($sql);
+			return $this->_execute_by_explode($sql);
 		}
 	}
 
@@ -75,27 +117,34 @@ class Simple_Migration_Revision
 	 *
 	 * @since 1.0
 	 * @param string $sql_path Full path to an SQL file
-	 * @return array|null Output from the php exec command
+	 * @return array|null Output from the php exec command, contains text output and exit code
 	 */
 	protected function _execute_by_shell($sql_path)
 	{
+		// Get Kohana DB conf
 		$db_conf = Kohana::$config->load('database')->{Database::$default};
+		$db_conf = $db_conf['connection'];
 
+		// The command to be executed in the shell
 		$command = 'mysql -u ' . $db_conf["username"] . ' -p' . $db_conf["password"] . ' -D ' . $db_conf["database"] . ' -h '
-			. $db_conf["hostname"] . ' < ' . $sql_path;
+			. $db_conf["hostname"] . ' -v -v -v < ' . $sql_path;
 
+		// Log
 		Kohana::$log->add(Log::INFO, 'Execute shell command: :command.', array(
 			':command' => $command
 		));
 
-		exec($command, $output);
-		return $output;
+		// Execute mysql dumper
+		exec($command, $output, $return_var);
+
+		$output = "Running migration for revision {$this->version}...\n" . implode("\n", $output);
+		return array('output' => $output, 'status' => $return_var);
 	}
 
 	/**
 	 * @throws Kohana_Exception
 	 */
-	protected function execute_by_explode()
+	protected function _execute_by_explode()
 	{ // Todo
 		throw new Kohana_Exception('Not implemented yet');
 	}
@@ -109,9 +158,11 @@ class Simple_Migration_Revision
 	 */
 	protected function _load_sql($version)
 	{
-		// Load SQL
-		$this->sql_up = file_get_contents($this->file($version, Simple_Migration::UP));
-		$this->sql_down = file_get_contents($this->file($version, Simple_Migration::DOWN));
+		if ($version > 0) {
+			// Load SQL
+			$this->sql_up = file_get_contents($this->file($version, Simple_Migration::UP));
+			$this->sql_down = file_get_contents($this->file($version, Simple_Migration::DOWN));
+		}
 
 		return $this;
 	}
@@ -120,13 +171,22 @@ class Simple_Migration_Revision
 	 * Get full path to a SQL migration file
 	 *
 	 * @since 1.0
-	 * @param int $version The revision version
+	 * @param int $version The revision version, defaults to the instances version
 	 * @param string $direction UP or DOWN
 	 * @throws Simple_Migration_Exception
 	 * @return string Full path to a SQL file
 	 */
-	public function file($version, $direction = Simple_Migration::UP)
+	public function file($version = NULL, $direction = Simple_Migration::UP)
 	{
+		if ($version === NULL) {
+			$version = $this->version;
+		}
+
+		// Pseudo-version
+		if ($version == 0) {
+			return NULL;
+		}
+
 		// Dir that holds up and down subdirs
 		$dir = DOCROOT . Simple_Migration::BASE_DIR;
 
@@ -136,7 +196,6 @@ class Simple_Migration_Revision
 
 		// Full path of the UP migration
 		$path = $dir . $direction . $file_suffix;
-
 
 		if (!file_exists($path)) {
 			throw new Simple_Migration_Exception('Tried to load SQL for migration, but no such file (:path) exists. Please

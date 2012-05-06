@@ -37,21 +37,22 @@
 				<span class="icon-bar"></span>
 				<span class="icon-bar"></span>
 			</a>
-			<a class="brand" href="#">Simple Migrations v<?=Simple_Migration::VERSION?></a>
+			<a class="brand" href="<?=URL::base()?>simple_migrations"><?=__('Simple Migrations')?></a>
 
-			<div class="pull-right">
-				<?if ($status === Simple_Migration::STATUS_OK): ?>
-				<button class="btn btn-success" disabled="disabled"><?=__('Up-to-date')?></button>
-				<? else: ?>
-				<a href="<?=URL::base()?>simple_migrations/migrate/<?=$migrations[1]?>" class="btn btn-warning" title="<?=__('Run
-				database
-				migration')?>"><i class="icon-arrow-up"></i> <?=__('Migrate DB')?></a>
-				<?endif?>
-			</div>
+			<form class="navbar-form pull-right" method="post" action="<?=URL::base()?>simple_migrations/migrate">
+				<span class="navbar-text"><?=__('Revision version')?>: </span>
+				<input type="text" class="span1" title="<?=__('Database revision version to migrate to')?>" name="revision"
+				       required value="<?=$current->version + 1?>"/>
+				<input type="submit" value="<?=__('Migrate DB')?>" class="btn btn-warning"/>
+			</form>
+
 			<div class="nav-collapse">
 				<ul class="nav">
 					<li class="active"><a href="<?=URL::base()?>simple_migrations"><?=__('Dash')?></a></li>
-					<li><a href="https://github.com/anroots/kohana-simple-migrations/wiki"><?=__('Module documentation')?></a>
+					<li>
+						<a href="https://github.com/anroots/kohana-simple-migrations/wiki" target="_blank">
+							<?=__('Module documentation')?>
+						</a>
 					</li>
 				</ul>
 			</div>
@@ -65,11 +66,22 @@
 		<div class="span2">
 			<div class="well sidebar-nav">
 				<ul class="nav nav-list">
-					<li class="nav-header">Migrations</li>
+					<li class="nav-header"><?=__('Database')?></li>
+					<li>
+						<?=__('Current revision: <strong>:rev</strong>', array(
+						':rev' => $current->version,
+					))?>
+					</li>
+					<li>
+						<?=__('Latest revision: <strong>:rev</strong>', array(
+						':rev' => $migrations[0]
+					))?>
+					</li>
+					<li class="nav-header"><?=__('Revisions')?></li>
 					<?if (count($migrations)): ?>
 					<? foreach ($migrations as $migration_version): ?>
 						<li>
-							<a href="<?=URL::base()?>simple_migrations/migration/<?=$migration_version?>">
+							<a href="<?=URL::base()?>simple_migrations/revision/<?=$migration_version?>">
 								<?=__('Revision')?> <?=$migration_version?>
 							</a>
 						</li>
@@ -93,10 +105,14 @@
 
 	<footer>
 		<p>
+			<?=__('Kohana Simple Migrations version :ver', array(':ver' => Simple_Migration::VERSION))?> | 
 			<?=__('Fork me on :link', array(
 			':link' => HTML::anchor('https://github.com/anroots/kohana-simple-migrations/wiki', 'GitHub')
 		))?> |
-			<?=__('Licence: LGPL')?>
+			<?=__('Licence: LGPL')?> |
+			<a href="<?=URL::base()?>simple_migrations/uninstall" title="<?=__('Deletes the module database table.')?>">
+				<?=__('Uninstall the module')?>
+			</a>
 		</p>
 	</footer>
 
