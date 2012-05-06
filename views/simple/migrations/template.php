@@ -105,7 +105,7 @@
 
 	<footer>
 		<p>
-			<?=__('Kohana Simple Migrations version :ver', array(':ver' => Simple_Migration::VERSION))?> | 
+			<?=__('Kohana Simple Migrations version :ver', array(':ver' => Simple_Migration::VERSION))?> |
 			<?=__('Fork me on :link', array(
 			':link' => HTML::anchor('https://github.com/anroots/kohana-simple-migrations/wiki', 'GitHub')
 		))?> |

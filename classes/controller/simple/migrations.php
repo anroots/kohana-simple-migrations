@@ -57,7 +57,7 @@ class Controller_Simple_Migrations extends Controller_Template
 		$id = Request::current()->param('id');
 
 		$this->template->content = View::factory('simple/migrations/revision');
-		$this->template->content->revision = $revision = new Simple_Migration_Revision($id);
+		$this->template->content->revision = new Simple_Migration_Revision((int)$id);
 	}
 
 	/**

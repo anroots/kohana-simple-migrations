@@ -131,9 +131,19 @@ class Simple_Migration
 	 */
 	public function check()
 	{
+		// Get config for the default database (profiles not yet supported)
+		$config = Kohana::$config->load('database')->{Database::$default};
+
 		// No current state (most likely the module is not installed), do not continue
-		if (($current = $this->current()) === NULL) {
+		if ($config['migrations'] !== TRUE || $this->current() === NULL || Request::current() === NULL) {
 			return FALSE;
+		}
+
+		// Check if there exist a next revision
+		if ($this->current()->can_migrate()) {
+
+			// There is a new UP migration available, intercept the current request and redirect
+			Request::current()->redirect('simple_migrations');
 		}
 	}
 
@@ -141,7 +151,8 @@ class Simple_Migration
 	 * Get a list of .sql files
 	 *
 	 * @static
-	 * @param string $type Migration type (up/down)
+	 * @param string $type Migration type (UP/DOWN)
+	 * @return array A list of .sql files, in descending numerical order
 	 * @throws Simple_Migration_Exception
 	 */
 	public static function get_files($type = Simple_Migration::UP)

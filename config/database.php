@@ -24,9 +24,9 @@ return array
 			 * Ports and sockets may be appended to the hostname.
 			 */
 			'hostname'   => 'localhost',
-			'database'   => 'challengo',
-			'username'   => 'arendus',
-			'password'   => 'vaarikas',
+			'database'   => 'mydatabase',
+			'username'   => 'user',
+			'password'   => 'secret',
 			'persistent' => FALSE,
 		),
 		'table_prefix' => '',
@@ -43,9 +43,8 @@ return array
 		 * Possible values (defaults to 1)
 		 *
 		 * 1 - Use UNIX shell (PHP exec function, mysql shell command) to load the database .sql file
-		 * 2 - Explode the file using ';' characters as delimiters and run each command separately
+		 * 2 - Explode the file using ';' characters as delimiters and run each command separately (not implemented yet)
 		 */
 		'migration_method' => 1
-
 	),
 );

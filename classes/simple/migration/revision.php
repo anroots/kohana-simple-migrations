@@ -71,6 +71,9 @@ class Simple_Migration_Revision
 		if ($values instanceof stdClass) {
 			$this->version = $values->version;
 			$this->applied = $values->applied;
+		} else {
+			// No such revision on the database. Load only version
+			$this->version = $version;
 		}
 	}
 

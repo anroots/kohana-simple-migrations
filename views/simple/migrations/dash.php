@@ -8,6 +8,7 @@
 	<p><?=__('Current database version is :version and no UP scripts found: the database is up-to-date.', array(
 		':version' => $current->version
 	))?></p>
+
 	<? else: ?>
 	<p>
 		<?=__('Current database version is :version, but an update script with version :num exists. The database can be

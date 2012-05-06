@@ -10,14 +10,3 @@ Route::set('simple-migrations', 'simple-migrations/(/<action>(/<id>))')
 	'controller' => 'migrations',
 	'action' => 'index',
 ));
-
-// Get config for the default database (profiles not yet supported)
-$config = Kohana::$config->load('database')->{Database::$default};
-
-// Run a check: is migrating necessary?
-if ($config['migrations'] === TRUE) {
-	Simple_Migration::instance()
-		->check();
-}
-
-unset($config);

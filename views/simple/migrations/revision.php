@@ -8,7 +8,7 @@
 	</p>
 	<? else: ?>
 <p class="alert <?=$current->version >= $revision->version ? 'alert-success' : NULL?>">
-	<? if ($current->version >= $revision->version): ?>
+	<? if ($current->version >= $revision->version):?>
 		<?= __('Applied on :date.', array(':date' => $revision->applied)) ?>
 		<? else: ?>
 		<?= __('Not yet applied.') ?>
@@ -20,8 +20,18 @@
 </p>
 </div>
 
-<h3><?=__('Up')?></h3>
+<h3><?=__('Up script')?></h3>
+<p class="help-block pull-right">
+	<code><?=$revision->file()?></code>
+</p>
+<div class="clearfix"></div>
+
 <pre><?=$revision->sql_up?></pre>
-<h3><?=__('Down')?></h3>
+<h3><?=__('Down script')?></h3>
+<p class="help-block pull-right">
+	<code><?=$revision->file($revision->version,Simple_Migration::DOWN)?></code>
+</p>
+<div class="clearfix"></div>
+
 <pre><?=$revision->sql_down?></pre>
 <?endif ?>
