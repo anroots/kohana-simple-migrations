@@ -54,7 +54,8 @@ You have to write the files by hand, but the module keeps track of their executi
 
 # Documentation
 
-See the [GitHub Wiki](https://github.com/anroots/kohana-simple-migrations/wiki) (nothing there yet...)
+See the [GitHub Wiki](https://github.com/anroots/kohana-simple-migrations/wiki) for further documentation. The source code is
+annoted with PHPDoc style comments (and the plain old regular ones, too).
 
 # Requirements
 
@@ -70,4 +71,4 @@ into my own projects so I could get a feel of what needs to change.
 
 ## Licence
 
-[LGPL](http://www.opensource.org/licenses/lgpl-2.1.php)
+The module is released under the [LGPL](http://www.opensource.org/licenses/lgpl-2.1.php) licence.

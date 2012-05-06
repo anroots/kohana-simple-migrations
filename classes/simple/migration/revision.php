@@ -102,7 +102,7 @@ class Simple_Migration_Revision
 		$method = Kohana::$config->load('database')->{Database::$default};
 		$method = array_key_exists('migration_method', $method) ? (int)$method['migration_method'] : self::METHOD_SHELL;
 
-		Kohana::$log->add(Log::INFO, 'Running DB migration from version :from to version :to.', array(
+		Kohana::$log->add(Log::INFO, "\nRunning DB migration from version :from to version :to.", array(
 			':from' => $this->version,
 			':to' => $direction === Simple_Migration::UP ? $this->version + 1 : $this->version - 1
 		));
