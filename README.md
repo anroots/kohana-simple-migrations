@@ -39,7 +39,7 @@ You have to write the files by hand, but the module keeps track of their executi
 2. You create the file `APPPATH/migrations/up/42.sql` and write the necessary SQL (`CREATE TABLE ...`).
 3. Next, You add the reverse SQL to the file `APPPATH/migrations/down/42.sql (`DROP TABLE ...`)
 4. You refresh any project page in your browser
-5. The module warns You that it's detected a new migration file (42.sql) and asks You whether you want to execute it
+5. The module detects the new file and requires you to execute it
 6. The module runs the SQL in Your MySQL database
 7. You continue development
 
@@ -47,9 +47,10 @@ You have to write the files by hand, but the module keeps track of their executi
 
 1. Clone and add the module to your MODPATH (`git submodule add git://github.com/anroots/kohana-simple-migrations.git modules/simple-migrations`)
 2. Enable in `APPPATH/bootstrap.php`
-3. Add a row to `APPPATH/config/database.php`, first level (the same level with database profiles [default, production...]): `'migrations' => TRUE`
-4. `mkdir APPPATH/migrations/ups && mkdir APPPATH/migrations/downs`
-5. Start writing your .sql migrations
+3. Modify your `APPPATH/config/database.php` profiles to include the module (see `/config/database.php` for an example)
+4. `mkdir APPPATH/migrations/up && mkdir APPPATH/migrations/down`
+5. Open http://yourbaseurl.com/simple_migrations in your browser and click the install button
+6. Start writing your .sql migrations
 
 # Documentation
 
@@ -60,11 +61,12 @@ See the [GitHub Wiki](https://github.com/anroots/kohana-simple-migrations/wiki) 
 * Kohana 3.2
 * Kohana Database module
 * MySQL as the database
+* Linux as the server machine
 
 # Development
 
-This is an unstable, untested version of the module. Use at your own risk. I'm currently trying to incorporate the module into
-my own projects so I could get a feel of what needs to change.
+This is an **unstable, untested** version of the module. Use at your own risk. I'm currently trying to incorporate the module
+into my own projects so I could get a feel of what needs to change.
 
 ## Licence
 
