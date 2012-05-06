@@ -16,20 +16,19 @@ by it's counterpart UP file.
 ## Example
 
 ### APPPATH/migrations/up/2.sql
-```CREATE  TABLE IF NOT EXISTS `companies` (
 
-  `id` INT(12) UNSIGNED NOT NULL AUTO_INCREMENT ,
+    CREATE  TABLE IF NOT EXISTS `companies` (
+    
+      `id` INT(12) UNSIGNED NOT NULL AUTO_INCREMENT ,
+    
+      `name` VARCHAR(64) NOT NULL ,
+      PRIMARY KEY (`id`) )
 
-  `name` VARCHAR(64) NOT NULL ,
-  PRIMARY KEY (`id`) )
-
-ENGINE = InnoDB;```
+    ENGINE = InnoDB;
 
 ### APPPATH/migrations/down/2.sql
 
-```DROP TABLE IF EXISTS `companies` ;
-
-```
+    DROP TABLE IF EXISTS `companies` ;
 
 You have to write the files by hand, but the module keeps track of their execution by storing information about already run migrations in the database and warning you if it's detected a new migration file.
 
@@ -45,7 +44,8 @@ You have to write the files by hand, but the module keeps track of their executi
 
 # Installation
 
-1. Clone and add the module to your MODPATH (`git submodule add git://github.com/anroots/kohana-simple-migrations.git modules/simple-migrations`)
+1. Clone and add the module to your MODPATH 
+    (git submodule add git://github.com/anroots/kohana-simple-migrations.git modules/simple-migrations)
 2. Enable in `APPPATH/bootstrap.php`
 3. Modify your `APPPATH/config/database.php` profiles to include the module (see `/config/database.php` for an example)
 4. `mkdir APPPATH/migrations/up && mkdir APPPATH/migrations/down`
