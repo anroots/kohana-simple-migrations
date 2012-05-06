@@ -182,17 +182,21 @@ class Simple_Migration
 	 */
 	public function current()
 	{
-		try {
-			return DB::select()
-				->from($this->get_table_name())
-				->order_by('version', 'DESC')
-				->limit(1)
-				->as_object('simple_migration_revision')
-				->execute()
-				->current();
-		} catch (Database_Exception $e) {
-			return FALSE;
+		// Return cached copy
+		if (Simple_Migration::$_current === NULL) {
+			try {
+				Simple_Migration::$_current = DB::select()
+					->from($this->get_table_name())
+					->order_by('version', 'DESC')
+					->limit(1)
+					->as_object('simple_migration_revision')
+					->execute()
+					->current();
+			} catch (Database_Exception $e) {
+				return FALSE;
+			}
 		}
+		return Simple_Migration::$_current;
 	}
 
 	/**
@@ -212,6 +216,36 @@ class Simple_Migration
 			return self::STATUS_BEHIND;
 		}
 		return self::STATUS_OK;
+	}
+
+	/**
+	 * Migrate to a particular revision
+	 *
+	 * @since 1.0
+	 * @param int $revision_number
+	 */
+	public function migrate($revision_number)
+	{
+		return $this->current()->version > $revision_number ? $this->_migrate_down($revision_number) : $this->_migrate_up($revision_number);
+	}
+
+	private function _migrate_down($version)
+	{
+// todo
+		return TRUE;
+	}
+
+	private function _migrate_up($version)
+	{
+		$i = $this->current()->version;
+
+		while ($i < $version) {
+			$revision = new Simple_Migration_Revision($i);
+			$revision->execute(Simple_Migration::UP);
+			$i++;
+		}
+
+		return TRUE;
 	}
 
 	/**

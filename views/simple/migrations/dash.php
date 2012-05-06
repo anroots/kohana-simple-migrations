@@ -18,7 +18,7 @@
 	</p>
 	<p>
 		<a href="<?=URL::base()?>simple_migrations/migrate/<?=$migrations[1]?>" class="btn btn-warning">
-			<?=__('Migrate database to revision :rev', array(':rev' => $migrations[1]))?>
+			<i class="icon-arrow-up"></i> <?=__('Migrate database to revision :rev', array(':rev' => $migrations[1]))?>
 		</a>
 	</p>
 	<?endif ?>

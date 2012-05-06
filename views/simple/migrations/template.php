@@ -45,9 +45,7 @@
 				<? else: ?>
 				<a href="<?=URL::base()?>simple_migrations/migrate/<?=$migrations[1]?>" class="btn btn-warning" title="<?=__('Run
 				database
-				migration')?>">
-					<?=__('Migrate DB')?>
-				</a>
+				migration')?>"><i class="icon-arrow-up"></i> <?=__('Migrate DB')?></a>
 				<?endif?>
 			</div>
 			<div class="nav-collapse">

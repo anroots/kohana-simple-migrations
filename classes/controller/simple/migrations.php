@@ -59,6 +59,19 @@ class Controller_Simple_Migrations extends Controller_Template
 	}
 
 	/**
+	 * Migrate DB to a particular revision
+	 *
+	 * @since 1.0
+	 */
+	public function action_migrate()
+	{
+		$revision = $this->request->param('id');
+
+		$this->_instance->migrate($revision);
+		$this->request->redirect('simple_migrations');
+	}
+
+	/**
 	 * Install the module
 	 *
 	 * @since 1.0
